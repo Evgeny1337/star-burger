@@ -3,15 +3,19 @@ from django.shortcuts import reverse
 from django.templatetags.static import static
 from django.utils.html import format_html
 
-from .models import Product
+from .models import Product, OrderProduct
 from .models import ProductCategory
 from .models import Restaurant
 from .models import RestaurantMenuItem
+from .models import Order
 
 
 class RestaurantMenuItemInline(admin.TabularInline):
     model = RestaurantMenuItem
     extra = 0
+
+
+
 
 
 @admin.register(Restaurant)
@@ -101,6 +105,36 @@ class ProductAdmin(admin.ModelAdmin):
     get_image_list_preview.short_description = 'превью'
 
 
+class OrderProductInline(admin.TabularInline):  # или admin.StackedInline
+    model = OrderProduct
+    extra = 1
+    min_num = 1
+    fields = ('product', 'quantity', 'product_price_display')
+    readonly_fields = ('product_price_display',)
+
+    def product_price_display(self, obj):
+        if obj.product:
+            return f"{obj.product.price} ₽"
+        return "-"
+
+    product_price_display.short_description = 'Цена товара'
+
+
 @admin.register(ProductCategory)
-class ProductAdmin(admin.ModelAdmin):
+class ProductCategoryAdmin(admin.ModelAdmin):
     pass
+
+
+
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    # TODO Доабвить total price
+    list_display = ('id','firstname','lastname','phonenumber','address')
+    inlines = (OrderProductInline,)
+
+
+@admin.register(OrderProduct)
+class OrderProductAdmin(admin.ModelAdmin):
+    list_display = ('id', 'quantity', 'order', 'product')
+
