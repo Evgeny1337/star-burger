@@ -5,6 +5,7 @@ from django.db import transaction
 from django.templatetags.static import static
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework import status
 
 from .models import Product, Order, OrderProduct
 
@@ -85,6 +86,26 @@ def register_order(request):
         return Response(orders_response)
     if request.method  == 'POST':
         data = request.data
+
+        if 'products' not in data:
+            return Response({'products': 'Обязательное поле.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not isinstance(data['products'], list):
+            return Response({'products': 'Должен быть списком.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not data['products']:
+            return Response({'products': 'Не может быть пустым.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        for product in data['products']:
+            if not isinstance(product, dict):
+                return Response({'products': 'Каждый элемент должен быть объектом.'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+            if 'product' not in product or 'quantity' not in product:
+                return Response({'products': 'Каждый продукт должен иметь product и quantity.'},
+                                status=status.HTTP_400_BAD_REQUEST)
+
+
         with transaction.atomic():
             order = Order.objects.create(firstname=data['firstname'],
             lastname=data['lastname'],
