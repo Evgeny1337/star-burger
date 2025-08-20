@@ -1,7 +1,7 @@
 from django.urls import path
+from django.urls.conf import include
 
 from .views import product_list_api, banners_list_api, register_order
-
 
 app_name = "foodcartapp"
 

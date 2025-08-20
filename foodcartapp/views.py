@@ -1,9 +1,10 @@
 import json
 
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
+from django.db import transaction
 from django.templatetags.static import static
-
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 from .models import Product, Order, OrderProduct
 
@@ -59,18 +60,45 @@ def product_list_api(request):
         'indent': 4,
     })
 
-
+@api_view(['GET','POST'])
 def register_order(request):
-    order_data = json.loads(request.body)
-    firstname = order_data.get('firstname')
-    lsatname = order_data.get('lastname')
-    phonenumber = order_data.get('phonenumber')
-    address = order_data.get('address')
-    order = Order.objects.create(firstname=firstname, lastname=lsatname, phonenumber=phonenumber, address=address)
-    products = order_data.get('products')
-    for product in products:
-        product_id = product['product']
-        quantity = product['quantity']
-        product = Product.objects.get(id=product_id)
-        OrderProduct.objects.create(order=order, product=product, quantity=quantity)
-    return JsonResponse({})
+    if request.method == 'GET':
+        orders = Order.objects.prefetch_related('order_products')
+        orders_response = []
+        for order in orders:
+            products = []
+            for order_product in order.order_products.all():
+                products.append({
+                'id': order_product.id,
+                'name': order_product.product.name,
+                'price': order_product.product.price,
+                'quantity': order_product.quantity,
+                })
+            orders_response.append({
+            'id': order.id,
+            'first_name': order.firstname,
+            'last_name': order.lastname,
+            'phonenumber': str(order.phonenumber),
+            'address': order.address,
+            'products': products
+            })
+        return Response(orders_response)
+    if request.method  == 'POST':
+        data = request.data
+        with transaction.atomic():
+            order = Order.objects.create(firstname=data['firstname'],
+            lastname=data['lastname'],
+            phonenumber=data['phonenumber'],
+            address=data['address'])
+            order_products = []
+            for product in data['products']:
+                order_product = OrderProduct(order=order,product_id=product['product'], quantity=product['quantity'])
+                order_products.append(order_product)
+            OrderProduct.objects.bulk_create(order_products)
+
+        return Response({'id':order.id,**data})
+
+
+
+
+
