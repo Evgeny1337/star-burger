@@ -64,26 +64,10 @@ def product_list_api(request):
 @api_view(['GET','POST'])
 def register_order(request):
     if request.method == 'GET':
-        orders = Order.objects.prefetch_related('order_products')
-        orders_response = []
-        for order in orders:
-            products = []
-            for order_product in order.order_products.all():
-                products.append({
-                'id': order_product.id,
-                'name': order_product.product.name,
-                'price': order_product.product.price,
-                'quantity': order_product.quantity,
-                })
-            orders_response.append({
-            'id': order.id,
-            'first_name': order.firstname,
-            'last_name': order.lastname,
-            'phonenumber': str(order.phonenumber),
-            'address': order.address,
-            'products': products
-            })
-        return Response(orders_response)
+        orders = Order.objects.prefetch_related('order_products__product')
+        serializer = OrderSerializer(orders, many=True)
+        return Response(serializer.data)
+
     if request.method  == 'POST':
         serializer = OrderSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -102,8 +86,8 @@ def register_order(request):
                     quantity=product_data['quantity']
                 ) for product_data in serializer.validated_data['products']
             ])
-
-        return Response({'id': order.id, **serializer.data}, status=status.HTTP_201_CREATED)
+        response_serializer = OrderSerializer(order)
+        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
 
 

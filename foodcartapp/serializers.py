@@ -14,11 +14,12 @@ class OrderProductSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
-    products = OrderProductSerializer(many=True, allow_empty=False)
+    id = serializers.IntegerField(read_only=True)
+    products = OrderProductSerializer(many=True, allow_empty=False, write_only=True)
 
     class Meta:
         model = Order
-        fields = ['firstname', 'lastname', 'phonenumber', 'address', 'products']
+        fields = ['id','firstname', 'lastname', 'phonenumber', 'address', 'products']
 
     def validate_firstname(self, value):
         if not value.strip():
@@ -30,3 +31,4 @@ class OrderSerializer(serializers.ModelSerializer):
         if not value.strip():
             raise serializers.ValidationError('Адрес не может быть пустым')
         return value
+
