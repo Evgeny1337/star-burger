@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from .models import Product, Order, OrderProduct
+from .serializers import OrderSerializer
 
 
 def banners_list_api(request):
@@ -84,62 +85,25 @@ def register_order(request):
             })
         return Response(orders_response)
     if request.method  == 'POST':
-        data = request.data
-
-        required_fields = ['firstname', 'lastname', 'phonenumber', 'address', 'products']
-        for field in required_fields:
-            if field not in data:
-                return Response({field: 'Обязательное поле'}, status=status.HTTP_400_BAD_REQUEST)
-
-        for field in ['firstname', 'lastname', 'address']:
-            if not data[field] or not isinstance(field, str):
-                return Response({field:'Это поле не может быть пустым'}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            parsed_phonenumber = phonenumbers.parse(data['phonenumber'], 'RU')
-            if not phonenumbers.is_valid_number(parsed_phonenumber):
-                return Response({'phonenumber': 'Введен некорректный номер телефона.'},
-                                status=status.HTTP_400_BAD_REQUEST)
-        except phonenumbers.NumberParseException:
-            return Response({'phonenumber': 'Введен некорректный номер телефона.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        if not isinstance(data['products'], list):
-            return Response({'products': 'Должен быть списком.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        if not data['products']:
-            return Response({'products': 'Не может быть пустым.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        for product in data['products']:
-            if not isinstance(product, dict):
-                return Response({'products': 'Каждый элемент должен быть объектом.'},
-                                status=status.HTTP_400_BAD_REQUEST)
-
-            if 'product' not in product or 'quantity' not in product:
-                return Response({'products': 'Каждый продукт должен иметь product и quantity.'},
-                                status=status.HTTP_400_BAD_REQUEST)
-
-            try:
-                if not Product.objects.filter(id=int(product['product'])).exists():
-                    return Response({'Заказ с несуществующим id продукта'}, status=status.HTTP_400_BAD_REQUEST)
-            except (ValueError, TypeError):
-                return Response({'Все products должны быть числом.'}, status=status.HTTP_400_BAD_REQUEST)
-
-            if not isinstance(product['quantity'], int) or product['quantity'] < 1:
-                return Response({'quantity': 'Должен быть положительным числом.'}, status=status.HTTP_400_BAD_REQUEST)
-
+        serializer = OrderSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
         with transaction.atomic():
-            order = Order.objects.create(firstname=data['firstname'],
-            lastname=data['lastname'],
-            phonenumber=data['phonenumber'],
-            address=data['address'])
-            order_products = []
-            for product in data['products']:
-                order_product = OrderProduct(order=order,product_id=product['product'], quantity=product['quantity'])
-                order_products.append(order_product)
-            OrderProduct.objects.bulk_create(order_products)
+            order = Order.objects.create(
+                firstname=serializer.validated_data['firstname'],
+                lastname=serializer.validated_data['lastname'],
+                phonenumber=serializer.validated_data['phonenumber'],
+                address=serializer.validated_data['address']
+            )
+            OrderProduct.objects.bulk_create([
+                OrderProduct(
+                    order=order,
+                    product=product_data['product'],
+                    quantity=product_data['quantity']
+                ) for product_data in serializer.validated_data['products']
+            ])
 
-        return Response({'id':order.id,**data})
+        return Response({'id': order.id, **serializer.data}, status=status.HTTP_201_CREATED)
 
 
 
