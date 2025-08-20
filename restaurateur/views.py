@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import user_passes_test
 
 from django.contrib.auth import authenticate, login
 from django.contrib.auth import views as auth_views
-
+from django.db.models import F, Sum
 
 from foodcartapp.models import Product, Restaurant, Order
 from foodcartapp.serializers import OrderSerializer
@@ -93,8 +93,7 @@ def view_restaurants(request):
 
 @user_passes_test(is_manager, login_url='restaurateur:login')
 def view_orders(request):
-    orders = Order.objects.all().values('id','firstname','lastname','phonenumber', 'address')
-    serializer = OrderSerializer(orders, many=True)
+    orders = Order.objects.with_total_price().values('id','firstname','lastname','phonenumber','address', 'total_price')
     return render(request, template_name='order_items.html', context={
-        'order_items': serializer.data,
+        'order_items': orders,
     })
