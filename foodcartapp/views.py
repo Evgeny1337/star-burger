@@ -1,5 +1,4 @@
-import json
-
+import phonenumbers
 from django.http import JsonResponse
 from django.db import transaction
 from django.templatetags.static import static
@@ -87,8 +86,22 @@ def register_order(request):
     if request.method  == 'POST':
         data = request.data
 
-        if 'products' not in data:
-            return Response({'products': 'Обязательное поле.'}, status=status.HTTP_400_BAD_REQUEST)
+        required_fields = ['firstname', 'lastname', 'phonenumber', 'address', 'products']
+        for field in required_fields:
+            if field not in data:
+                return Response({field: 'Обязательное поле'}, status=status.HTTP_400_BAD_REQUEST)
+
+        for field in ['firstname', 'lastname', 'address']:
+            if not data[field] or not isinstance(field, str):
+                return Response({field:'Это поле не может быть пустым'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            parsed_phonenumber = phonenumbers.parse(data['phonenumber'], 'RU')
+            if not phonenumbers.is_valid_number(parsed_phonenumber):
+                return Response({'phonenumber': 'Введен некорректный номер телефона.'},
+                                status=status.HTTP_400_BAD_REQUEST)
+        except phonenumbers.NumberParseException:
+            return Response({'phonenumber': 'Введен некорректный номер телефона.'}, status=status.HTTP_400_BAD_REQUEST)
 
         if not isinstance(data['products'], list):
             return Response({'products': 'Должен быть списком.'}, status=status.HTTP_400_BAD_REQUEST)
@@ -104,6 +117,15 @@ def register_order(request):
             if 'product' not in product or 'quantity' not in product:
                 return Response({'products': 'Каждый продукт должен иметь product и quantity.'},
                                 status=status.HTTP_400_BAD_REQUEST)
+
+            try:
+                if not Product.objects.filter(id=int(product['product'])).exists():
+                    return Response({'Заказ с несуществующим id продукта'}, status=status.HTTP_400_BAD_REQUEST)
+            except (ValueError, TypeError):
+                return Response({'Все products должны быть числом.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            if not isinstance(product['quantity'], int) or product['quantity'] < 1:
+                return Response({'quantity': 'Должен быть положительным числом.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
         with transaction.atomic():
