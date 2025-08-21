@@ -79,6 +79,7 @@ def register_order(request):
                 phonenumber=serializer.validated_data['phonenumber'],
                 address=serializer.validated_data['address']
             )
+
             OrderProduct.objects.bulk_create([
                 OrderProduct(
                     order=order,
