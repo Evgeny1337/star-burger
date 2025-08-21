@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models.aggregates import Sum
@@ -166,7 +168,16 @@ class Order(models.Model):
 class OrderProduct(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='order_products')
     product = models.ForeignKey(Product,on_delete=models.CASCADE,related_name='order_items')
-    quantity = models.IntegerField()
+    quantity = models.IntegerField(
+        validators=[MinValueValidator(1)],
+    )
+    fixed_price = models.DecimalField(
+        'Фиксированная цена',
+        max_digits=8,
+        decimal_places=2,
+        validators=[MinValueValidator(Decimal('0.01'))],
+        default=0.00
+    )
 
     class Meta:
         verbose_name = 'Продукт в заказе'

@@ -114,7 +114,7 @@ class OrderProductInline(admin.TabularInline):  # или admin.StackedInline
 
     def product_price_display(self, obj):
         if obj.product:
-            return f"{obj.product.price} ₽"
+            return f"{obj.fixed_price} ₽"
         return "-"
 
     product_price_display.short_description = 'Цена товара'
@@ -132,6 +132,12 @@ class OrderAdmin(admin.ModelAdmin):
     # TODO Доабвить total price
     list_display = ('id','firstname','lastname','phonenumber','address')
     inlines = (OrderProductInline,)
+    def save_formset(self, request, form, formset, change):
+        instances = formset.save(commit=False)
+        for instance in instances:
+            if isinstance(instance, OrderProduct) and not instance.pk:
+                instance.fixed_price = instance.product.price
+        super().save_formset(request, form, formset, change)
 
 
 @admin.register(OrderProduct)
