@@ -1,7 +1,9 @@
 from django.contrib import admin
+from django.http.response import HttpResponseRedirect
 from django.shortcuts import reverse
 from django.templatetags.static import static
 from django.utils.html import format_html
+from django.utils.http import url_has_allowed_host_and_scheme
 
 from .models import Product, OrderProduct
 from .models import ProductCategory
@@ -132,12 +134,23 @@ class OrderAdmin(admin.ModelAdmin):
     # TODO Доабвить total price
     list_display = ('id','firstname','lastname','phonenumber','address')
     inlines = (OrderProductInline,)
+
+
     def save_formset(self, request, form, formset, change):
         instances = formset.save(commit=False)
         for instance in instances:
             if isinstance(instance, OrderProduct) and not instance.pk:
                 instance.fixed_price = instance.product.price
         super().save_formset(request, form, formset, change)
+
+    def response_change(self, request, obj):
+        response = super().response_change(request, obj)
+        if '_continue' not in request.POST and '_addanother' not in request.POST and isinstance(response, HttpResponseRedirect):
+            next_url = request.GET.get('next')
+            if next_url and url_has_allowed_host_and_scheme(url=next_url, allowed_hosts={request.get_host()}):
+                return HttpResponseRedirect(next_url)
+
+        return response
 
 
 @admin.register(OrderProduct)

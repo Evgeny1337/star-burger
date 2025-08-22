@@ -29,10 +29,10 @@
         <td>{{ item.phonenumber }}</td>
         <td>{{ item.address }}</td>
         <td>
-          <a href="{% url 'admin:foodcartapp_order_change' item.id %}"
+          <a href="{% url 'admin:foodcartapp_order_change' item.id %}?next={{ request.path }}"
              target="_blank"
              class="btn btn-sm btn-outline-primary">
-            Редактировать
+             Редактировать
           </a>
       </td>
       </tr>
