@@ -142,6 +142,10 @@ class Order(models.Model):
         COMPLETED = 'completed', 'Выполнен'
         CANCELLED = 'cancelled', 'Отменен'
 
+    class PaymentMethod(models.TextChoices):
+        CASH = 'cash', 'Наличностью'
+        CARD = 'card', 'Электронно'
+
     firstname = models.CharField(
         'Имя',
         max_length=100
@@ -167,6 +171,14 @@ class Order(models.Model):
         max_length=20,
         choices=Status.choices,
         default=Status.UNPROCESSED,
+        db_index=True
+    )
+
+    payment_method = models.CharField(
+        'Способ оплаты',
+        max_length=20,
+        choices=PaymentMethod.choices,
+        default=PaymentMethod.CASH,
         db_index=True
     )
 
@@ -201,6 +213,11 @@ class Order(models.Model):
     @property
     def status_label(self):
         return self.get_status_display()
+
+    @property
+    def payment_method_label(self):
+        return self.get_payment_method_display()
+
 
     objects = OrderQuerySet.as_manager()
 
