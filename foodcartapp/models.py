@@ -5,7 +5,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models.aggregates import Sum
 from django.db.models.expressions import F
 from phonenumber_field.modelfields import PhoneNumberField
-
+from django.utils import timezone
 
 class OrderQuerySet(models.QuerySet):
     def with_total_price(self):
@@ -175,6 +175,27 @@ class Order(models.Model):
         blank=True,
         null=True,
         default='-',
+    )
+
+    registrated_at = models.DateTimeField(
+        'Дата и время создания заказа',
+        default=timezone.now,
+        db_index=True
+    )
+
+    called_at = models.DateTimeField(
+        'Дата и время звонка',
+        null=True,
+        blank=True,
+        db_index=True
+    )
+
+
+    delivered_at = models.DateTimeField(
+        'Дата и время доставки',
+        null=True,
+        blank=True,
+        db_index=True
     )
 
     @property
