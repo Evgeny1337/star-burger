@@ -170,6 +170,13 @@ class Order(models.Model):
         db_index=True
     )
 
+    comment = models.TextField(
+        'Комментарий',
+        blank=True,
+        null=True,
+        default='-',
+    )
+
     @property
     def status_label(self):
         return self.get_status_display()
