@@ -135,6 +135,13 @@ class RestaurantMenuItem(models.Model):
 
 
 class Order(models.Model):
+    class Status(models.TextChoices):
+        UNPROCESSED = 'unprocessed', 'Необработанный'
+        PROCESSING = 'processing', 'В обработке'
+        IN_DELIVERY = 'in_delivery', 'В доставке'
+        COMPLETED = 'completed', 'Выполнен'
+        CANCELLED = 'cancelled', 'Отменен'
+
     firstname = models.CharField(
         'Имя',
         max_length=100
@@ -155,6 +162,17 @@ class Order(models.Model):
         default='-'
     )
 
+    status = models.CharField(
+        'Статус заказа',
+        max_length=20,
+        choices=Status.choices,
+        default=Status.UNPROCESSED
+    )
+
+    @property
+    def status_label(self):
+        return self.get_status_display()
+
     objects = OrderQuerySet.as_manager()
 
     class Meta:
@@ -162,7 +180,7 @@ class Order(models.Model):
         verbose_name_plural = 'Заказы'
 
     def __str__(self):
-        return f"{self.firstname} {self.lastname}"
+        return f"{self.firstname} {self.lastname} - {self.status}"
 
 
 class OrderProduct(models.Model):
