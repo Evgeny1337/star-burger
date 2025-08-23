@@ -166,7 +166,8 @@ class Order(models.Model):
         'Статус заказа',
         max_length=20,
         choices=Status.choices,
-        default=Status.UNPROCESSED
+        default=Status.UNPROCESSED,
+        db_index=True
     )
 
     @property
@@ -178,6 +179,10 @@ class Order(models.Model):
     class Meta:
         verbose_name = 'Заказ'
         verbose_name_plural = 'Заказы'
+
+        indexes = [
+            models.Index(fields=['status'])
+        ]
 
     def __str__(self):
         return f"{self.firstname} {self.lastname} - {self.status}"
