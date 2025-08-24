@@ -4,9 +4,10 @@ from django.db import models
 from django.core.validators import MinValueValidator
 from django.db.models.aggregates import Sum
 from django.db.models.expressions import F
-from django.db.models.query import Prefetch
 from phonenumber_field.modelfields import PhoneNumberField
 from django.utils import timezone
+from foodcartapp.utils.geocoder import get_coordinates
+from foodcartapp.utils.distance import calculate_distance
 
 class OrderQuerySet(models.QuerySet):
     def with_total_price(self):
@@ -27,9 +28,13 @@ class OrderQuerySet(models.QuerySet):
 
         orders = list(self.prefetch_related('order_products__product'))
 
+        all_restaurants = Restaurant.objects.all()
+        restaurants_coords = {}
+        for restaurant in all_restaurants:
+            restaurants_coords[restaurant.id] = get_coordinates(restaurant.address)
+
         for order in orders:
             available_restaurants = None
-
             for order_product in order.order_products.all():
                 product_id = order_product.product_id
 
@@ -43,7 +48,30 @@ class OrderQuerySet(models.QuerySet):
                     available_restaurants = set()
                     break
 
-            order.available_restaurants = list(available_restaurants) if available_restaurants else []
+            if available_restaurants:
+                delivery_coords = get_coordinates(order.address)
+
+                restaurants_with_distance = []
+                for restaurant in available_restaurants:
+                    restaurant_coords = restaurants_coords.get(restaurant.id)
+
+                    dist = None
+                    if delivery_coords and restaurant_coords:
+                        dist = calculate_distance(delivery_coords, restaurant_coords)
+
+                    restaurants_with_distance.append({
+                        'restaurant': restaurant,
+                        'distance': dist
+                    })
+
+                restaurants_with_distance.sort(key=lambda x: (
+                    x['distance'] is None,
+                    x['distance'] or float('inf')
+                ))
+
+                order.available_restaurants = restaurants_with_distance
+            else:
+                order.available_restaurants = []
 
         return orders
 

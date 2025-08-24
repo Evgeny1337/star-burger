@@ -37,27 +37,34 @@
           <td>{{ item.address }}</td>
           <td>{{ item.comment|default:"" }}</td>
          <td>
-            {% if item.cooking_restaurant %}
-              Готовит: {{ item.cooking_restaurant.name }}
-            {% else %}
-              <details>
-                <summary>
+              {% if item.cooking_restaurant %}
+                Готовит: {{ item.cooking_restaurant.name }}
+              {% else %}
+                <details>
+                  <summary>
+                    {% if item.available_restaurants %}
+                      Может приготовить: {{ item.available_restaurants|length }}
+                    {% else %}
+                      Ошибка определения координат
+                    {% endif %}
+                  </summary>
                   {% if item.available_restaurants %}
-                    Может приготовить: {{ item.available_restaurants|length }}
-                  {% else %}
-                    Ошибка определения координат
+                    <ul>
+                      {% for restaurant_data in item.available_restaurants %}
+                        <li>
+                          {{ restaurant_data.restaurant.name }}
+                          {% if restaurant_data.distance %}
+                            - {{ restaurant_data.distance }} км
+                          {% else %}
+                            - расстояние не определено
+                          {% endif %}
+                        </li>
+                      {% endfor %}
+                    </ul>
                   {% endif %}
-                </summary>
-                {% if item.available_restaurants %}
-                  <ul>
-                    {% for restaurant in item.available_restaurants %}
-                      <li>{{ restaurant.name }}</li>
-                    {% endfor %}
-                  </ul>
-                {% endif %}
-              </details>
-            {% endif %}
-        </td>
+                </details>
+              {% endif %}
+          </td>
           <td>
             <a href="{% url 'admin:foodcartapp_order_change' item.id %}?next={{ request.path }}"
                target="_blank"
