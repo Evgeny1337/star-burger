@@ -1,3 +1,4 @@
+import datetime
 from decimal import Decimal
 
 from django.db import models
@@ -16,6 +17,13 @@ class OrderQuerySet(models.QuerySet):
         )
 
     def with_available_restaurants(self):
+        orders = list(self.prefetch_related('order_products__product'))
+
+        all_restaurants = Restaurant.objects.all()
+        restaurant_coords = {}
+        for restaurant in all_restaurants:
+            restaurant_coords[restaurant.id] = get_coordinates(restaurant.address)
+
         menu_items = RestaurantMenuItem.objects.filter(
             availability=True
         ).select_related('restaurant')
@@ -26,15 +34,9 @@ class OrderQuerySet(models.QuerySet):
                 product_restaurants[item.product_id] = []
             product_restaurants[item.product_id].append(item.restaurant)
 
-        orders = list(self.prefetch_related('order_products__product'))
-
-        all_restaurants = Restaurant.objects.all()
-        restaurants_coords = {}
-        for restaurant in all_restaurants:
-            restaurants_coords[restaurant.id] = get_coordinates(restaurant.address)
-
         for order in orders:
             available_restaurants = None
+
             for order_product in order.order_products.all():
                 product_id = order_product.product_id
 
@@ -53,22 +55,15 @@ class OrderQuerySet(models.QuerySet):
 
                 restaurants_with_distance = []
                 for restaurant in available_restaurants:
-                    restaurant_coords = restaurants_coords.get(restaurant.id)
-
-                    dist = None
-                    if delivery_coords and restaurant_coords:
-                        dist = calculate_distance(delivery_coords, restaurant_coords)
+                    rest_coords = restaurant_coords.get(restaurant.id)
+                    dist = calculate_distance(delivery_coords, rest_coords) if delivery_coords and rest_coords else None
 
                     restaurants_with_distance.append({
                         'restaurant': restaurant,
                         'distance': dist
                     })
 
-                restaurants_with_distance.sort(key=lambda x: (
-                    x['distance'] is None,
-                    x['distance'] or float('inf')
-                ))
-
+                restaurants_with_distance.sort(key=lambda x: (x['distance'] is None, x['distance'] or float('inf')))
                 order.available_restaurants = restaurants_with_distance
             else:
                 order.available_restaurants = []
@@ -325,3 +320,28 @@ class OrderProduct(models.Model):
 
     def __str__(self):
         return f"{self.product.name} - {self.quantity}"
+
+
+class PlaceCoordinates(models.Model):
+    address = models.CharField(
+        'Адрес места',
+        max_length=255,
+        unique=True,
+        db_index=True
+    )
+    lat = models.FloatField('Широта')
+    lon = models.FloatField('Долгота')
+    updated_at = models.DateTimeField(
+        'Дата обновления координат',
+        auto_now=True
+    )
+
+    class Meta:
+        verbose_name = 'координаты места'
+        verbose_name_plural = 'координаты мест'
+
+    def __str__(self):
+        return f'{self.address} ({self.lat}, {self.lon})'
+
+    def is_expired(self):
+        return (datetime.datetime.now() - self.updated_at.replace(tzinfo=None)) > datetime.timedelta(days=30)

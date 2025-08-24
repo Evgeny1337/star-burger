@@ -5,7 +5,7 @@ from django.templatetags.static import static
 from django.utils.html import format_html
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.core.exceptions import ObjectDoesNotExist
-from .models import Product, OrderProduct
+from .models import Product, OrderProduct, PlaceCoordinates
 from .models import ProductCategory
 from .models import Restaurant
 from .models import RestaurantMenuItem
@@ -15,9 +15,6 @@ from .models import Order
 class RestaurantMenuItemInline(admin.TabularInline):
     model = RestaurantMenuItem
     extra = 0
-
-
-
 
 
 @admin.register(Restaurant)
@@ -52,8 +49,6 @@ class ProductAdmin(admin.ModelAdmin):
         'category',
     ]
     search_fields = [
-        # FIXME SQLite can not convert letter case for cyrillic words properly, so search will be buggy.
-        # Migration to PostgreSQL is necessary
         'name',
         'category__name',
     ]
@@ -131,7 +126,6 @@ class ProductCategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    # TODO Доабвить total price
     list_display = ('id','firstname','lastname','phonenumber','address', 'status', 'comment', 'registrated_at', 'called_at', 'delivered_at', 'cooking_restaurant')
     list_filter = ('status',)
     list_editable = ('status',)
@@ -195,4 +189,10 @@ class OrderAdmin(admin.ModelAdmin):
 @admin.register(OrderProduct)
 class OrderProductAdmin(admin.ModelAdmin):
     list_display = ('id', 'quantity', 'order', 'product')
+
+@admin.register(PlaceCoordinates)
+class PlaceCoordinatesAdmin(admin.ModelAdmin):
+    list_display = ('address', 'lat', 'lon', 'updated_at')
+
+
 

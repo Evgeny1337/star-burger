@@ -1,6 +1,7 @@
 import requests
 from django.conf import settings
-from django.core.cache import cache
+from django.core.exceptions import ObjectDoesNotExist
+
 
 def fetch_coordinates(apikey, address):
     base_url = "https://geocode-maps.yandex.ru/1.x"
@@ -24,19 +25,25 @@ def get_coordinates(address):
     if not settings.YANDEX_GEOCODER_API_KEY:
         return None
 
-    cache_key = f'geocoder_{address}'
-    cached = cache.get(cache_key)
-    if cached:
-        return cached
+    from foodcartapp.models import PlaceCoordinates
+
+    try:
+        place_coords = PlaceCoordinates.objects.get(address=address)
+        if not place_coords.is_expired():
+            return (place_coords.lat, place_coords.lon)
+    except ObjectDoesNotExist:
+        pass
 
     try:
         coordinates = fetch_coordinates(settings.YANDEX_GEOCODER_API_KEY, address)
         if coordinates:
-            cache.set(cache_key, coordinates, 60 * 60 * 24)
+            lat, lon = coordinates
+            PlaceCoordinates.objects.update_or_create(
+                address=address,
+                defaults={'lat': lat, 'lon': lon}
+            )
             return coordinates
         return None
 
     except requests.RequestException as e:
-        return None
-    except (KeyError, IndexError, ValueError) as e:
         return None
