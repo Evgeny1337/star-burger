@@ -4,7 +4,7 @@ from django.shortcuts import reverse
 from django.templatetags.static import static
 from django.utils.html import format_html
 from django.utils.http import url_has_allowed_host_and_scheme
-
+from django.core.exceptions import ObjectDoesNotExist
 from .models import Product, OrderProduct
 from .models import ProductCategory
 from .models import Restaurant
@@ -132,10 +132,47 @@ class ProductCategoryAdmin(admin.ModelAdmin):
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     # TODO Доабвить total price
-    list_display = ('id','firstname','lastname','phonenumber','address', 'status', 'comment', 'registrated_at', 'called_at', 'delivered_at' )
+    list_display = ('id','firstname','lastname','phonenumber','address', 'status', 'comment', 'registrated_at', 'called_at', 'delivered_at', 'cooking_restaurant')
     list_filter = ('status',)
     list_editable = ('status',)
     inlines = (OrderProductInline,)
+
+    def formfield_for_foreignkey(self, db_field, request, **kwargs):
+        if db_field.name == "cooking_restaurant":
+            object_id = request.resolver_match.kwargs.get('object_id')
+            if object_id:
+                try:
+                    order = Order.objects.get(id=object_id)
+                    available_restaurants = self.get_available_restaurants(order)
+                    kwargs["queryset"] = available_restaurants
+                except ObjectDoesNotExist:
+                    pass
+        return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+    def get_available_restaurants(self, order):
+        menu_items = RestaurantMenuItem.objects.filter(
+            availability=True
+        )
+        product_restaurants = {}
+        for item in menu_items:
+            if item.product_id not in product_restaurants:
+                product_restaurants[item.product_id] = []
+            product_restaurants[item.product_id].append(item.restaurant_id)
+
+        available_restaurant_ids = None
+        for order_product in order.order_products.all():
+            product_id = order_product.product_id
+            if product_id in product_restaurants:
+                restaurant_ids = set(product_restaurants[product_id])
+                if available_restaurant_ids is None:
+                    available_restaurant_ids = restaurant_ids
+                else:
+                    available_restaurant_ids = available_restaurant_ids.intersection(restaurant_ids)
+            else:
+                return Restaurant.objects.none()
+            if not available_restaurant_ids:
+                return Restaurant.objects.none()
+        return Restaurant.objects.filter(id__in=available_restaurant_ids)
 
 
     def save_formset(self, request, form, formset, change):

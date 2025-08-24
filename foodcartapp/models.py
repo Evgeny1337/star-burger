@@ -1,9 +1,10 @@
 from decimal import Decimal
 
 from django.db import models
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.validators import MinValueValidator
 from django.db.models.aggregates import Sum
 from django.db.models.expressions import F
+from django.db.models.query import Prefetch
 from phonenumber_field.modelfields import PhoneNumberField
 from django.utils import timezone
 
@@ -12,6 +13,39 @@ class OrderQuerySet(models.QuerySet):
         return self.annotate(
             total_price=Sum(F('order_products__quantity') * F('order_products__product__price'))
         )
+
+    def with_available_restaurants(self):
+        menu_items = RestaurantMenuItem.objects.filter(
+            availability=True
+        ).select_related('restaurant')
+
+        product_restaurants = {}
+        for item in menu_items:
+            if item.product_id not in product_restaurants:
+                product_restaurants[item.product_id] = []
+            product_restaurants[item.product_id].append(item.restaurant)
+
+        orders = list(self.prefetch_related('order_products__product'))
+
+        for order in orders:
+            available_restaurants = None
+
+            for order_product in order.order_products.all():
+                product_id = order_product.product_id
+
+                if product_id in product_restaurants:
+                    restaurant_set = set(product_restaurants[product_id])
+                    if available_restaurants is None:
+                        available_restaurants = restaurant_set
+                    else:
+                        available_restaurants = available_restaurants.intersection(restaurant_set)
+                else:
+                    available_restaurants = set()
+                    break
+
+            order.available_restaurants = list(available_restaurants) if available_restaurants else []
+
+        return orders
 
 class Restaurant(models.Model):
     name = models.CharField(
@@ -145,6 +179,16 @@ class Order(models.Model):
     class PaymentMethod(models.TextChoices):
         CASH = 'cash', 'Наличностью'
         CARD = 'card', 'Электронно'
+
+    cooking_restaurant = models.ForeignKey(
+        Restaurant,
+        verbose_name='Ресторан для приготовления',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='orders'
+    )
+
 
     firstname = models.CharField(
         'Имя',
