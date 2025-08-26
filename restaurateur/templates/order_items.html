@@ -50,14 +50,21 @@
                 </summary>
                 {% if item.available_restaurants %}
                   <ul>
-                    {% for restaurant in item.available_restaurants %}
-                      <li>{{ restaurant.name }}</li>
+                    {% for restaurant_data in item.available_restaurants %}
+                      <li>
+                        {{ restaurant_data.restaurant.name }}
+                        {% if restaurant_data.distance %}
+                          - {{ restaurant_data.distance }} км
+                        {% else %}
+                          - расстояние не определено
+                        {% endif %}
+                      </li>
                     {% endfor %}
                   </ul>
                 {% endif %}
               </details>
             {% endif %}
-        </td>
+          </td>
           <td>
             <a href="{% url 'admin:foodcartapp_order_change' item.id %}?next={{ request.path }}"
                target="_blank"
