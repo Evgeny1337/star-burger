@@ -35,16 +35,17 @@ def get_coordinates(address):
 
     try:
         coordinates = fetch_coordinates(settings.YANDEX_GEOCODER_API_KEY, address)
-        if coordinates:
-            lat, lon = coordinates
-            PlaceCoordinates.objects.update_or_create(
-                address=address,
-                defaults={'lat': lat, 'lon': lon}
-            )
-            return coordinates
-        return None
-
+        lat, lon = coordinates if coordinates else (None, None)
+        PlaceCoordinates.objects.update_or_create(
+            address=address,
+            defaults={'lat': lat, 'lon': lon}
+        )
+        return coordinates
     except requests.RequestException as e:
+        PlaceCoordinates.objects.update_or_create(
+            address=address,
+            defaults={'lat': None, 'lon': None}
+        )
         return None
 
 
