@@ -316,7 +316,6 @@ class OrderProduct(models.Model):
         max_digits=8,
         decimal_places=2,
         validators=[MinValueValidator(Decimal('0.01'))],
-        default=0.00
     )
 
     class Meta:
