@@ -261,7 +261,7 @@ class Order(models.Model):
         default='-',
     )
 
-    registrated_at = models.DateTimeField(
+    registered_at = models.DateTimeField(
         'Дата и время создания заказа',
         default=timezone.now,
         db_index=True

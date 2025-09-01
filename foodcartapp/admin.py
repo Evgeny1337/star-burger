@@ -132,7 +132,7 @@ class ProductCategoryAdmin(admin.ModelAdmin):
 @admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
     # TODO Доабвить total price
-    list_display = ('id','firstname','lastname','phonenumber','address', 'status', 'comment', 'registrated_at', 'called_at', 'delivered_at', 'cooking_restaurant')
+    list_display = ('id','firstname','lastname','phonenumber','address', 'status', 'comment', 'registered_at', 'called_at', 'delivered_at', 'cooking_restaurant')
     list_filter = ('status',)
     list_editable = ('status',)
     inlines = (OrderProductInline,)
