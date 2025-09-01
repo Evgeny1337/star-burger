@@ -71,23 +71,7 @@ def register_order(request):
     if request.method  == 'POST':
         serializer = OrderSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-
-        with transaction.atomic():
-            order = Order.objects.create(
-                firstname=serializer.validated_data['firstname'],
-                lastname=serializer.validated_data['lastname'],
-                phonenumber=serializer.validated_data['phonenumber'],
-                address=serializer.validated_data['address']
-            )
-
-            OrderProduct.objects.bulk_create([
-                OrderProduct(
-                    order=order,
-                    product=product_data['product'],
-                    quantity=product_data['quantity'],
-                    fixed_price=product_data['product'].price,
-                ) for product_data in serializer.validated_data['products']
-            ])
+        order = serializer.save()
         response_serializer = OrderSerializer(order)
         return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
