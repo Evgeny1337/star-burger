@@ -1,8 +1,12 @@
+from django.core.validators import MinValueValidator
 from rest_framework import serializers
 from .models import Order,OrderProduct
 from django.db import transaction
 
 class OrderProductSerializer(serializers.ModelSerializer):
+    quantity = serializers.IntegerField(
+        validators=[MinValueValidator(1)]
+    )
     class Meta:
         model = OrderProduct
         fields = ['product','quantity']
@@ -17,6 +21,8 @@ class OrderProductSerializer(serializers.ModelSerializer):
 class OrderSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(read_only=True)
     products = OrderProductSerializer(many=True, allow_empty=False, write_only=True)
+    firstname = serializers.CharField(allow_blank=False,trim_whitespace=True)
+    address = serializers.CharField(allow_blank=False,trim_whitespace=True)
 
     class Meta:
         model = Order
@@ -42,14 +48,4 @@ class OrderSerializer(serializers.ModelSerializer):
             OrderProduct.objects.bulk_create(order_products)
             return order
 
-    def validate_firstname(self, value):
-        if not value.strip():
-            raise serializers.ValidationError('Имя не может быть пустым')
-        return value
-
-    def validate_address(self, value):
-        print(value)
-        if not value.strip():
-            raise serializers.ValidationError('Адрес не может быть пустым')
-        return value
 
