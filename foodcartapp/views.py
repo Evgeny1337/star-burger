@@ -61,19 +61,15 @@ def product_list_api(request):
         'indent': 4,
     })
 
-@api_view(['GET','POST'])
+@api_view(['POST'])
 def register_order(request):
-    if request.method == 'GET':
-        orders = Order.objects.prefetch_related('order_products__product')
-        serializer = OrderSerializer(orders, many=True)
-        return Response(serializer.data)
+    serializer = OrderSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    order = serializer.save()
+    response_serializer = OrderSerializer(order)
+    return Response(response_serializer.data, status=status.HTTP_201_CREATED)
 
-    if request.method  == 'POST':
-        serializer = OrderSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        order = serializer.save()
-        response_serializer = OrderSerializer(order)
-        return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+
 
 
 
