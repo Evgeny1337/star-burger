@@ -56,10 +56,11 @@ pip install -r requirements.txt
 
 
 
-Определите переменную окружения `SECRET_KEY` и `ROLLBAR_ACCESS_TOKEN`. Создать файл `.env` в каталоге `star_burger/` и положите туда такой код:
+Определите переменную окружения `SECRET_KEY`, `ROLLBAR_ACCESS_TOKEN`, `POSTGRES_PASSWORD`. Создать файл `.env` в каталоге `star_burger/` и положите туда такой код:
 ```sh
 SECRET_KEY=django-insecure-0if40nf4nf93n4
 ROLLBAR_ACCESS_TOKEN=ваш_секретный_токен_rollbar
+POSTGRES_PASSWORD=ваш_пароль_для_db
 ```
 
 Создайте файл базы данных SQLite и отмигрируйте её следующей командой:
