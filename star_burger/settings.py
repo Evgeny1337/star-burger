@@ -1,22 +1,23 @@
 import os
+from email.policy import default
 
 import dj_database_url
 
-from environs import Env
+import environ
 
 
-env = Env()
+env = environ.Env()
 env.read_env()
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 SECRET_KEY = env('SECRET_KEY')
 YANDEX_GEOCODER_API_KEY=env('YANDEX_GEOCODER_API_KEY')
 DEBUG = env.bool('DEBUG', True)
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', ['127.0.0.1', 'localhost','195.133.194.120'])
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['127.0.0.1', 'localhost','195.133.194.120'])
 
 INSTALLED_APPS = [
     'foodcartapp.apps.FoodcartappConfig',
@@ -95,7 +96,7 @@ MEDIA_URL = '/media/'
 
 
 DATABASES = {
-    'default': env('DATABASE_URL')
+    'default': env.db('DATABASE_URL')
 }
 
 # DATABASES = {
