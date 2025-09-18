@@ -95,7 +95,7 @@ MEDIA_URL = '/media/'
 
 
 DATABASES = {
-    'default': env.db('DATABASE_URL')
+    'default': env('DATABASE_URL')
 }
 
 # DATABASES = {
