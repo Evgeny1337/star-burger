@@ -1,6 +1,7 @@
 import phonenumbers
 from django.http import JsonResponse
 from django.db import transaction
+from django.http.response import HttpResponse
 from django.templatetags.static import static
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -68,6 +69,13 @@ def register_order(request):
     order = serializer.save()
     response_serializer = OrderSerializer(order)
     return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+
+
+
+def test(request):
+    a = None
+    a.hello() # Creating an error with an invalid line of code
+    return HttpResponse("Hello, world. You're at the pollapp index.")
 
 
 
