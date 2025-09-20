@@ -9,7 +9,7 @@ django-cache-url==3.4.5
 django-debug-toolbar==5.2.0
 django-phonenumber-field==8.1.0
 djangorestframework==3.16.1
-environs==14.2.0
+django-environ==0.12.0
 geographiclib==2.1
 geopy==2.4.1
 idna==3.10
@@ -22,3 +22,4 @@ python-dotenv==1.1.1
 requests==2.32.5
 sqlparse==0.5.3
 urllib3==2.5.0
+certbot==5.0.0
