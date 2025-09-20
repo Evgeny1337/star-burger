@@ -167,6 +167,28 @@ Parcel будет следить за файлами в каталоге `bundle
 * Соберёт статические файлы
 * Перезапустит сервис
 
+## Развертывание на сервере
+Сайт развернут на сервере с характеристиками:
+-   IP-адрес:  `195.133.194.120`
+-   Пользователь:  `root`
+-   Порт SSH:  `22`
+
+Для подключения к серверу:
+```bash
+ssh root@195.133.194.120 -p 22
+```
+Расположение проекта:
+```bash
+cd /opt/star-burger
+```
+Запуск сервисов:
+```bash
+systemctl reload nginx.service
+systemctl start star-burger.service
+```
+Ссылка на сайт:
+[Star Burger](https://devman-burger-test.ru/)
+
 ## Цели проекта
 
 Код написан в учебных целях — это урок в курсе по Python и веб-разработке на сайте [Devman](https://dvmn.org). За основу был взят код проекта [FoodCart](https://github.com/Saibharath79/FoodCart).
