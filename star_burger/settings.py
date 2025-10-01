@@ -17,7 +17,7 @@ SECRET_KEY = env('SECRET_KEY')
 YANDEX_GEOCODER_API_KEY=env('YANDEX_GEOCODER_API_KEY')
 DEBUG = env.bool('DEBUG', True)
 
-ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['127.0.0.1', 'localhost','195.133.194.120'])
+ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['127.0.0.1', 'localhost'])
 
 INSTALLED_APPS = [
     'foodcartapp.apps.FoodcartappConfig',
@@ -48,7 +48,7 @@ MIDDLEWARE = [
 ]
 
 ROLLBAR = {
-    'access_token': env('ROLLBAR_ACCESS_TOKEN'),
+    'access_token': 'a2ad5b01861a497283c70e0792f9ac51',
     'environment': 'development' if DEBUG else 'production',
     'code_version': '1.0',
     'root': BASE_DIR,
