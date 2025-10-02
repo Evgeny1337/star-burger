@@ -47,6 +47,7 @@ MIDDLEWARE = [
     'foodcartapp.middleware.CustomRollbarNotifierMiddleware'
 ]
 
+
 ROLLBAR = {
     'access_token': 'a2ad5b01861a497283c70e0792f9ac51',
     'environment': env("ROLLBAR_SETTING", default='development'),
