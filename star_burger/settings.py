@@ -49,7 +49,7 @@ MIDDLEWARE = [
 
 ROLLBAR = {
     'access_token': 'a2ad5b01861a497283c70e0792f9ac51',
-    'environment': 'development' if DEBUG else 'production',
+    'environment': env("ROLLBAR_SETTING", 'development'),
     'code_version': '1.0',
     'root': BASE_DIR,
 }
@@ -99,16 +99,6 @@ DATABASES = {
     'default': env.db('DATABASE_URL')
 }
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'starburger',
-#         'USER': 'evgeny',
-#         'PASSWORD': env('POSTGRES_PASSWORD'),
-#         'HOST': 'localhost',
-#         'PORT': '5432',
-#     }
-# }
 
 AUTH_PASSWORD_VALIDATORS = [
     {

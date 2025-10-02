@@ -23,3 +23,4 @@ requests==2.32.5
 sqlparse==0.5.3
 urllib3==2.5.0
 certbot==5.0.0
+gevent==25.9.1
