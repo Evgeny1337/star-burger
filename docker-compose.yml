@@ -2,11 +2,11 @@ version: '3.8'
 
 services:
   db:
-    image: postgres:15
+    image: postgres:14
     environment:
       POSTGRES_DB: starburger
       POSTGRES_USER: evgeny
-      POSTGRES_PASSWORD: 1234
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -22,14 +22,12 @@ services:
       YANDEX_GEOCODER_API_KEY: ${YANDEX_GEOCODER_API_KEY}
       DEBUG: ${DEBUG}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS}
-      DATABASE_URL: postgresql://evgeny:1234@db:5432/starburger
+      DATABASE_URL: postgresql://evgeny:${POSTGRES_PASSWORD}@db:5432/starburger
     depends_on:
       - db
     volumes:
       - media_volume:/app/media
       - static_volume:/app/static
-      - ./assets:/app/assets:ro
-      - ./templates:/app/templates:ro
     networks:
       - app-network
 
