@@ -1,0 +1,23 @@
+FROM node:16.16-alpine
+
+WORKDIR /app
+
+
+COPY package*.json ./
+
+
+RUN npm ci --only=production
+
+
+COPY bundles-src/ ./bundles-src/
+COPY package*.json ./
+
+
+RUN ./node_modules/.bin/parcel build bundles-src/index.js --dist-dir bundles --public-url="./"
+
+
+RUN npm install -g serve
+
+EXPOSE 3000
+
+CMD ["serve", "-s", "bundles", "-l", "3000"]
