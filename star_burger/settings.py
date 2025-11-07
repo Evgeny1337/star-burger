@@ -128,8 +128,14 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+USE_X_FORWARDED_HOST = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+
 INTERNAL_IPS = [
-    '127.0.0.1'
+    '127.0.0.1',
+    '172.0.0.1',
+    'localhost',
 ]
 
 
