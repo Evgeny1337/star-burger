@@ -12,11 +12,7 @@ services:
     restart: unless-stopped
 
   backend:
-    ports:
-      - "8000:8000"
-    build:
-      context: .
-      dockerfile: Dockerfile.backend
+    image: evgeny1337depo/star-burger-backend:latest
     environment:
       - DATABASE_URL=postgresql://evgenijsozykin:${POSTGRES_PASSWORD}@db:5432/starburger
     env_file:
@@ -29,18 +25,15 @@ services:
     restart: unless-stopped
 
   frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile.frontend
+    image: evgeny1337depo/star-burger-frontend:latest
     restart: unless-stopped
 
   nginx:
-    image: nginx:alpine
+    image: evgeny1337depo/star-burger-nginx:latest
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx.prod.conf:/etc/nginx/conf.d/default.conf
       - /etc/letsencrypt:/etc/letsencrypt:ro
       - staticfiles_volume:/app/staticfiles
       - media_volume:/app/media
