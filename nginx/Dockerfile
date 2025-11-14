@@ -2,4 +2,6 @@ FROM nginx:alpine
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-EXPOSE 80
+RUN mkdir -p /app/staticfiles /app/media
+
+EXPOSE 80 443
