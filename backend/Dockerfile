@@ -19,7 +19,7 @@ COPY restaurateur/ ./restaurateur/
 COPY templates/ ./templates/
 COPY assets/ ./assets/
 COPY geocoordinates/ ./geocoordinates/
-COPY bundles/ ./static/bundles/    # ⚠️ путь изменен
+COPY bundles/ ./static/bundles/
 
 RUN mkdir -p /app/static /app/media
 
