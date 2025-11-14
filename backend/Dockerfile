@@ -19,10 +19,10 @@ COPY restaurateur/ ./restaurateur/
 COPY templates/ ./templates/
 COPY assets/ ./assets/
 COPY geocoordinates/ ./geocoordinates/
-COPY bundles/ ./static/bundles/
+COPY bundles/ ./static/bundles/    # ⚠️ путь изменен
 
 RUN mkdir -p /app/static /app/media
 
 EXPOSE 8000
 
-CMD ["sh", "-c", "python manage.py migrate && python manage.py collectstatic --noinput && echo 'from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(username=\"admin\").exists() or User.objects.create_superuser(\"admin\", \"admin@example.com\", \"admin123\")' | python manage.py shell && python manage.py runserver 0.0.0.0:8000"]
+CMD ["sh", "-c", "python manage.py migrate && python manage.py collectstatic --noinput && python manage.py runserver 0.0.0.0:8000"]

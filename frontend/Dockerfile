@@ -1,0 +1,16 @@
+FROM node:16-alpine
+
+WORKDIR /app
+
+RUN apk add --no-cache python3 make g++
+
+COPY package.json package-lock.json ./
+RUN npm install
+
+COPY bundles-src/ ./bundles-src/
+
+RUN ./node_modules/.bin/parcel build bundles-src/index.js --dist-dir /app/bundles --public-url "./"
+
+RUN npm install -g serve
+
+CMD ["serve", "-s", "bundles", "-l", "3000"]
