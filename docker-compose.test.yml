@@ -17,6 +17,8 @@ services:
       - DATABASE_URL=postgresql://evgenijsozykin:${POSTGRES_PASSWORD}@db:5432/starburger
     env_file:
       - .env
+    ports:
+      - "127.0.0.1:8000:8000"
     volumes:
       - media_volume:/app/media
       - staticfiles_volume:/app/staticfiles
@@ -26,19 +28,9 @@ services:
   frontend:
     build: ./frontend
     image: evgeny1337depo/star-burger-frontend:latest
-
-  nginx:
-    build: ./nginx
-    image: evgeny1337depo/star-burger-nginx:latest
     ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - staticfiles_volume:/app/staticfiles
-      - media_volume:/app/media
-    depends_on:
-      - backend
-      - frontend
+      - "127.0.0.1:3000:3000"
+
 
 volumes:
   postgres_data:
